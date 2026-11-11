@@ -89,6 +89,18 @@ Protected endpoints require `Authorization: Bearer <JWT>`. Passwords must be 8â€
 
 See [`server/.env.example`](server/.env.example). `CLIENT_ORIGIN` should be set to the deployed client origin. Never commit `.env` files.
 
+## Deploy (Vercel + Render + MongoDB Atlas)
+
+The repository includes [`vercel.json`](vercel.json) and [`render.yaml`](render.yaml) as deployment configuration. These providers require your own accounts and a MongoDB Atlas database; never commit or send database connection strings or other secrets in chat.
+
+1. Create a MongoDB Atlas cluster and database user. Configure Atlas Network Access to allow the Render service to connect. Copy the application connection string for the Render dashboard.
+2. In Render, create a **Blueprint** from this GitHub repository and deploy `render.yaml`. Supply the Atlas URI for `MONGODB_URI` and your future Vercel site origin for `CLIENT_ORIGIN` when prompted. Render generates `JWT_SECRET`. The API service's URL will be shown on its service dashboard.
+3. In Vercel, import the same GitHub repository. The included `vercel.json` builds and serves the React client. Add the environment variable `VITE_API_URL` with the Render API URL followed by `/api` (for example, `https://your-api.onrender.com/api`), then deploy.
+4. Set `CLIENT_ORIGIN` in Render to the exact Vercel production URL and redeploy the API.
+5. In Render's API service shell, run `node src/scripts/seed.js` from the `server` root directory after setting strong `SEED_ADMIN_PASSWORD`, `SEED_OWNER_PASSWORD`, and `SEED_CUSTOMER_PASSWORD` values in Render's environment. Keep these values private. Production seeding requires all three values.
+
+Wait for both services to finish deploying, then verify the website and `https://your-api.onrender.com/api/health`. Free instances may take a little time to wake up. The deployment URLs are issued by the hosting providers and cannot be known until the services are created.
+
 ## Production notes
 
 - Create the first administrator through the seed script or a controlled provisioning process; public registration always creates a customer.
